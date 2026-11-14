@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Tin Số Thư Viện - Trường PTDTNT THCS Sơn Tây</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            blue: '#1769AA', blueDark: '#104E80',
+                            teal: '#20A69A', tealDark: '#178278',
+                            orange: '#F48740', orangeDark: '#D96B24',
+                            bg: '#F7FAFC', text: '#243247'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F7FAFC; color: #243247; scroll-behavior: smooth; }
+        .pin-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .pin-card:hover { transform: translateY(-3px); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-blue selection:text-white">
+
+    <!-- THANH TRẠNG THÁI ADMIN -->
+    <div id="admin-banner" class="hidden bg-slate-900 text-white py-2.5 px-4 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs sm:text-sm">
+            <div class="flex items-center gap-2">
+                <span class="bg-brand-orange text-slate-950 font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider text-xs">
+                    <i class="fa-solid fa-shield-halved mr-1"></i>Chế độ Quản trị viên (Admin)
+                </span>
+                <span id="pending-counter-badge" class="bg-rose-600 text-white font-bold px-2.5 py-0.5 rounded-full text-xs hidden">
+                    0 bài chờ duyệt
+                </span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="syncFromCloud(true)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate text-brand-teal"></i>
+                    <span>Làm mới dữ liệu</span>
+                </button>
+                <button onclick="exportBackupData()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-download text-amber-400"></i>
+                    <span>Sao lưu JSON</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-brand-blue to-brand-teal text-white flex items-center justify-center text-xl sm:text-2xl shadow-sm group-hover:scale-105 transition">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-brand-teal">Bảng Tin Số Thư Viện</span>
+                            <span class="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-brand-orange"></span>
+                        </div>
+                        <h1 class="text-sm sm:text-lg font-extrabold text-brand-text leading-tight">TRƯỜNG PTDTNT THCS SƠN TÂY</h1>
+                    </div>
+                </a>
+
+                <nav class="hidden lg:flex items-center gap-1">
+                    <a href="#section-news" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-blue hover:bg-blue-50/70 transition">
+                        <i class="fa-regular fa-images mr-1.5 text-brand-blue"></i>Hoạt động
+                    </a>
+                    <a href="#section-docs" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-teal hover:bg-teal-50/70 transition">
+                        <i class="fa-regular fa-folder-open mr-1.5 text-brand-teal"></i>Tài liệu số
+                    </a>
+                    <a href="#section-reviews" class="px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-brand-orange hover:bg-orange-50/70 transition">
+                        <i class="fa-regular fa-heart mr-1.5 text-brand-orange"></i>Cảm nhận đọc giả
+                    </a>
+                </nav>
+
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="hidden xl:flex items-center gap-1.5">
+                        <a href="https://www.letsreadasia.org" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-brand-teal text-brand-tealDark hover:text-white font-bold text-xs border border-teal-200 transition">
+                            <i class="fa-solid fa-book-open"></i><span>Let's Read</span>
+                        </a>
+                        <a href="https://literacycloud.org" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-brand-orange text-amber-800 hover:text-white font-bold text-xs border border-amber-200 transition">
+                            <i class="fa-solid fa-cloud-sun"></i><span>Literacy Cloud</span>
+                        </a>
+                        <a href="https://hanhtrangso.nxbgd.vn" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-brand-blue text-brand-blue hover:text-white font-bold text-xs border border-blue-200 transition">
+                            <i class="fa-solid fa-graduation-cap"></i><span>Hành trang số</span>
+                        </a>
+                    </div>
+
+                    <button id="btn-toggle-admin" onclick="toggleAdminMode()" 
+                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm border border-slate-300 transition">
+                        <i id="admin-icon" class="fa-solid fa-lock text-slate-500"></i>
+                        <span id="admin-btn-text">Quản trị (Admin)</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex xl:hidden items-center justify-between gap-1.5 py-2 border-t border-slate-100 overflow-x-auto text-xs font-semibold">
+                <a href="#section-news" class="px-3 py-1.5 rounded-lg bg-blue-50 text-brand-blue whitespace-nowrap"><i class="fa-regular fa-images mr-1"></i>Hoạt động</a>
+                <a href="#section-docs" class="px-3 py-1.5 rounded-lg bg-teal-50 text-brand-teal whitespace-nowrap"><i class="fa-regular fa-folder-open mr-1"></i>Tài liệu</a>
+                <a href="#section-reviews" class="px-3 py-1.5 rounded-lg bg-orange-50 text-brand-orange whitespace-nowrap"><i class="fa-regular fa-heart mr-1"></i>Cảm nhận sách</a>
+                <a href="https://www.letsreadasia.org" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-teal-50/70 text-brand-tealDark border border-teal-200 whitespace-nowrap">Let's Read</a>
+                <a href="https://literacycloud.org" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-amber-50/70 text-amber-800 border border-amber-200 whitespace-nowrap">Literacy Cloud</a>
+                <a href="https://hanhtrangso.nxbgd.vn" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-blue-50/70 text-brand-blue border border-blue-200 whitespace-nowrap">Hành trang số</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO BANNER -->
+    <section class="bg-gradient-to-r from-brand-blue via-[#155d96] to-brand-teal text-white py-8 sm:py-12 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+                <div class="max-w-2xl text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-xs sm:text-sm font-semibold mb-3">
+                        <i class="fa-solid fa-sparkles text-brand-orange"></i>
+                        <span>Kết nối tri thức – Lan tỏa văn hóa đọc học đường</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight mb-3">
+                        Bảng Tin Điện Tử Thư Viện Trường PTDTNT THCS Sơn Tây
+                    </h2>
+                    <p class="text-blue-100 text-sm sm:text-base leading-relaxed mb-6">
+                        Nơi cập nhật hình ảnh hoạt động thư viện xanh, kết nối kho học liệu mở chuẩn Thông tư 16/2022/TT-BGDĐT và lưu giữ những dòng cảm nhận trang sách hay của thầy cô, học sinh nội trú.
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+                        <a href="#section-reviews" class="px-4 py-2.5 rounded-xl bg-brand-orange hover:bg-brand-orangeDark text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-pen-nib"></i><span>Viết cảm nhận sách</span>
+                        </a>
+                        <a href="https://www.letsreadasia.org" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-bold text-xs sm:text-sm border border-white/30 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-book-open"></i><span>Let's Read</span>
+                        </a>
+                        <a href="https://literacycloud.org" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-bold text-xs sm:text-sm border border-white/30 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-cloud-sun"></i><span>Literacy Cloud</span>
+                        </a>
+                        <a href="https://hanhtrangso.nxbgd.vn" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-bold text-xs sm:text-sm border border-white/30 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-graduation-cap"></i><span>Hành trang số</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 sm:gap-4 w-full lg:w-auto shrink-0">
+                    <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center">
+                        <span id="stat-news" class="block text-2xl sm:text-3xl font-extrabold text-white">3</span>
+                        <span class="text-xs text-blue-100 font-medium mt-1 block">Bản tin hoạt động</span>
+                    </div>
+                    <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center">
+                        <span id="stat-docs" class="block text-2xl sm:text-3xl font-extrabold text-amber-300">6</span>
+                        <span class="text-xs text-blue-100 font-medium mt-1 block">Tài liệu & Ấn phẩm</span>
+                    </div>
+                    <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center">
+                        <span id="stat-reviews" class="block text-2xl sm:text-3xl font-extrabold text-teal-200">4</span>
+                        <span class="text-xs text-blue-100 font-medium mt-1 block">Cảm nhận đã duyệt</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PHÂN KHU 1: BẢNG TIN & HÌNH ẢNH HOẠT ĐỘNG -->
+    <section id="section-news" class="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+                <span class="inline-block text-xs font-extrabold uppercase tracking-wider text-brand-blue bg-blue-100/80 px-3 py-1 rounded-full mb-2">
+                    Phân khu 01 • Góc Văn Hóa Đọc
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-text">Bảng Tin & Hình Ảnh Hoạt Động</h2>
+                <p class="text-slate-600 text-sm mt-1">Ghi lại những khoảnh khắc đọc sách, trang trí không gian xanh và sinh hoạt ngoại khóa tại thư viện.</p>
+            </div>
+
+            <button id="btn-add-news" onclick="openNewsModal()" class="hidden inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-sm shadow-sm transition shrink-0">
+                <i class="fa-solid fa-plus"></i><span>Đăng bài & Hình ảnh</span>
+            </button>
+        </div>
+
+        <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- PHÂN KHU 2: TÀI LIỆU & ẤN PHẨM THƯ VIỆN -->
+    <section id="section-docs" class="py-10 sm:py-14 bg-white border-y border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+                <div>
+                    <span class="inline-block text-xs font-extrabold uppercase tracking-wider text-brand-teal bg-teal-100/80 px-3 py-1 rounded-full mb-2">
+                        Phân khu 02 • Kho Học Liệu Công Khai
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-text">Tài Liệu & Ấn Phẩm Thư Viện</h2>
+                    <p class="text-slate-600 text-sm mt-1">Văn bản hướng dẫn, danh mục sách theo Thông tư 16/2022/TT-BGDĐT và các nguồn học liệu mở hợp pháp.</p>
+                </div>
+
+                <button id="btn-add-doc" onclick="openDocModal()" class="hidden inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-brand-teal hover:bg-brand-tealDark text-white font-bold text-sm shadow-sm transition shrink-0">
+                    <i class="fa-solid fa-cloud-arrow-up"></i><span>Đăng tải tài liệu</span>
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 mb-6" id="doc-filter-bar">
+                <button onclick="filterDocs('ALL', this)" class="doc-filter-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-brand-teal text-white transition">Tất cả tài liệu</button>
+                <button onclick="filterDocs('PDF', this)" class="doc-filter-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Văn bản PDF</button>
+                <button onclick="filterDocs('DOCX', this)" class="doc-filter-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Biểu mẫu DOCX</button>
+                <button onclick="filterDocs('XLSX', this)" class="doc-filter-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Danh mục XLSX</button>
+                <button onclick="filterDocs('LINK', this)" class="doc-filter-btn px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Học liệu trực tuyến</button>
+            </div>
+
+            <div id="docs-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+    </section>
+
+    <!-- PHÂN KHU 3: VIẾT CẢM NHẬN CỦA ĐỌC GIẢ -->
+    <section id="section-reviews" class="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <span class="inline-block text-xs font-extrabold uppercase tracking-wider text-brand-orange bg-orange-100/80 px-3 py-1 rounded-full mb-2">
+                Phân khu 03 • Tương Tác Bạn Đọc Nội Trú
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-text">Viết Cảm Nhận Của Đọc Giả</h2>
+            <p class="text-slate-600 text-sm mt-1">Chia sẻ cảm xúc về cuốn sách em tâm đắc. Bài viết sẽ hiển thị lên Bức tường Tri Thức sau khi Thư viện kiểm duyệt.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Cột trái: Biểu mẫu gửi cảm nhận -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm">
+                <div class="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
+                    <div class="w-11 h-11 rounded-2xl bg-orange-100 text-brand-orange flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-lg text-brand-text">Gửi bài cảm nhận sách</h3>
+                        <p class="text-xs text-slate-500">Nội dung sẽ được kiểm duyệt trước khi công khai</p>
+                    </div>
+                </div>
+
+                <form id="review-form" onsubmit="submitReview(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Họ và tên đọc giả *</label>
+                        <input id="rev-author" type="text" required placeholder="Ví dụ: Đinh Thị Hồng Nhung" 
+                               class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Lớp / Đơn vị *</label>
+                            <select id="rev-class" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:border-brand-blue">
+                                <option value="Lớp 6">Học sinh Lớp 6</option>
+                                <option value="Lớp 7">Học sinh Lớp 7</option>
+                                <option value="Lớp 8" selected>Học sinh Lớp 8</option>
+                                <option value="Lớp 9">Học sinh Lớp 9</option>
+                                <option value="Giáo viên">Giáo viên / Cán bộ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Đánh giá cuốn sách *</label>
+                            <div class="flex items-center gap-1.5 h-[42px] px-3 rounded-xl border border-slate-300 bg-slate-50" id="star-selector">
+                                <button type="button" onclick="setRating(1)" class="star-btn text-xl text-amber-400 focus:outline-none" data-val="1"><i class="fa-solid fa-star"></i></button>
+                                <button type="button" onclick="setRating(2)" class="star-btn text-xl text-amber-400 focus:outline-none" data-val="2"><i class="fa-solid fa-star"></i></button>
+                                <button type="button" onclick="setRating(3)" class="star-btn text-xl text-amber-400 focus:outline-none" data-val="3"><i class="fa-solid fa-star"></i></button>
+                                <button type="button" onclick="setRating(4)" class="star-btn text-xl text-amber-400 focus:outline-none" data-val="4"><i class="fa-solid fa-star"></i></button>
+                                <button type="button" onclick="setRating(5)" class="star-btn text-xl text-amber-400 focus:outline-none" data-val="5"><i class="fa-solid fa-star"></i></button>
+                                <span id="rating-label" class="ml-auto text-xs font-bold text-slate-600">5/5</span>
+                            </div>
+                            <input type="hidden" id="rev-rating" value="5">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Tên cuốn sách yêu thích *</label>
+                        <input id="rev-book" type="text" required placeholder="Ví dụ: Dế Mèn phiêu lưu ký - Tô Hoài" 
+                               class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Cảm nhận của em / thầy cô *</label>
+                        <textarea id="rev-content" rows="4" required placeholder="Cuốn sách mang lại cho em bài học hoặc cảm xúc gì đặc biệt?..." 
+                                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20"></textarea>
+                    </div>
+
+                    <button id="btn-submit-review" type="submit" class="w-full py-3 px-5 rounded-xl bg-brand-orange hover:bg-brand-orangeDark text-white font-extrabold text-sm shadow-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i><span>Gửi bài chờ duyệt lên Bảng tin</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Cột phải: Bức tường thẻ ghim cảm nhận -->
+            <div class="lg:col-span-7">
+                <!-- Khu vực dành riêng cho Admin duyệt bài chờ -->
+                <div id="admin-pending-box" class="hidden mb-6 bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5">
+                    <h3 class="font-extrabold text-amber-900 text-base mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-hourglass-half text-brand-orange"></i>
+                        <span>Bài cảm nhận đang chờ duyệt (<span id="pending-count-text">0</span>)</span>
+                    </h3>
+                    <div id="pending-reviews-list" class="space-y-3"></div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h3 class="font-extrabold text-lg text-brand-text flex items-center gap-2">
+                        <i class="fa-solid fa-thumbtack text-brand-orange rotate-45"></i>
+                        <span>Bức Tường Cảm Nhận Sách Hay</span>
+                    </h3>
+                    <div class="flex items-center gap-1.5 text-xs">
+                        <button onclick="filterReviews('ALL', this)" class="rev-filter-btn px-3 py-1 rounded-lg font-bold bg-brand-blue text-white">Tất cả</button>
+                        <button onclick="filterReviews('Lớp 6', this)" class="rev-filter-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Lớp 6</button>
+                        <button onclick="filterReviews('Lớp 7', this)" class="rev-filter-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Lớp 7</button>
+                        <button onclick="filterReviews('Lớp 8', this)" class="rev-filter-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Lớp 8</button>
+                        <button onclick="filterReviews('Lớp 9', this)" class="rev-filter-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Lớp 9</button>
+                        <button onclick="filterReviews('Giáo viên', this)" class="rev-filter-btn px-2.5 py-1 rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">Giáo viên</button>
+                    </div>
+                </div>
+
+                <div id="reviews-wall" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-text text-slate-300 pt-12 pb-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-700/80">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-brand-blue text-white flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-book-open-reader"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-white text-base">THƯ VIỆN PTDTNT THCS SƠN TÂY</h3>
+                            <p class="text-xs text-brand-teal font-semibold">Bảng Tin Điện Tử & Văn Hóa Đọc</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Không gian học tập thân thiện, hiện đại dành cho học sinh nội trú và giáo viên Trường Phổ thông Dân tộc Nội trú THCS Sơn Tây.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Kho học liệu số mở hợp pháp</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li><a href="https://www.letsreadasia.org" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-2 transition"><i class="fa-solid fa-book-open text-brand-teal"></i><span>Let's Read – Truyện thiếu nhi song ngữ</span></a></li>
+                        <li><a href="https://literacycloud.org" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-2 transition"><i class="fa-solid fa-cloud-sun text-brand-orange"></i><span>Literacy Cloud – Room to Read</span></a></li>
+                        <li><a href="https://hanhtrangso.nxbgd.vn" target="_blank" rel="noopener noreferrer" class="hover:text-white flex items-center gap-2 transition"><i class="fa-solid fa-graduation-cap text-blue-400"></i><span>Hành trang số – NXB Giáo dục Việt Nam</span></a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Thông tin liên hệ</h4>
+                    <ul class="space-y-2.5 text-sm text-slate-400">
+                        <li class="flex items-start gap-2.5"><i class="fa-solid fa-location-dot text-brand-orange mt-1"></i><span>Địa chỉ: Xã Sơn Tây, tỉnh Quảng Ngãi</span></li>
+                        <li class="flex items-center gap-2.5"><i class="fa-solid fa-user-tie text-brand-teal"></i><span>Phụ trách thư viện: <strong class="text-white">ĐINH NGỌC ĐẠT</strong></span></li>
+                        <li class="flex items-center gap-2.5"><i class="fa-solid fa-phone text-brand-teal"></i><span>Điện thoại: <a href="tel:0389942164" class="text-white hover:underline font-medium">0389 942 164</a></span></li>
+                        <li class="flex items-center gap-2.5"><i class="fa-solid fa-envelope text-brand-teal"></i><span>Email: <a href="mailto:banmaido.ti@gmail.com" class="text-white hover:underline font-medium">banmaido.ti@gmail.com</a></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
+                <p>© 2026 Bảng Tin Số Thư Viện Trường PTDTNT THCS Sơn Tây.</p>
+                <p>Tuân thủ quy định bản quyền & học liệu số theo Thông tư 16/2022/TT-BGDĐT.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- CÁC MODAL GIỮ NGUYÊN NHƯ THIẾT KẾ GỐC -->
+    <div id="modal-news" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-5">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-brand-blue flex items-center justify-center text-lg"><i class="fa-solid fa-camera-retro"></i></div>
+                    <div>
+                        <h3 class="font-extrabold text-brand-text text-lg">Đăng bài & Hình ảnh hoạt động</h3>
+                        <p class="text-xs text-slate-500">Cập nhật trực tiếp lên Bảng tin số</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-news')" class="w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="handleAddNews(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Chuyên mục hoạt động *</label>
+                    <select id="news-tag" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:border-brand-blue">
+                        <option value="Không gian đọc xanh">Không gian đọc xanh</option>
+                        <option value="Ngày hội đọc sách">Ngày hội đọc sách</option>
+                        <option value="Hoạt động nội trú">Hoạt động nội trú</option>
+                        <option value="Giới thiệu sách mới">Giới thiệu sách mới</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Tiêu đề bản tin *</label>
+                    <input id="news-title" type="text" required placeholder="Ví dụ: Học sinh khối 8 tham gia trang trí góc Cây Tri Thức" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-blue">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Chọn hình ảnh từ máy tính *</label>
+                    <div class="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:border-brand-blue transition bg-slate-50">
+                        <input id="news-image-file" type="file" accept="image/*" onchange="previewNewsImage(event)" class="hidden">
+                        <label for="news-image-file" class="cursor-pointer flex flex-col items-center justify-center">
+                            <i class="fa-solid fa-image text-2xl text-brand-blue mb-1.5"></i>
+                            <span class="text-sm font-bold text-brand-blue">Bấm để chọn ảnh (JPG, PNG)</span>
+                        </label>
+                        <img id="news-image-preview" class="hidden mt-3 max-h-44 mx-auto rounded-xl shadow-sm object-cover" alt="Xem trước ảnh">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Nội dung tóm tắt *</label>
+                    <textarea id="news-summary" rows="3" required placeholder="Mô tả ngắn gọn về hoạt động..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-blue"></textarea>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-news')" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Hủy bỏ</button>
+                    <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-sm">Đăng lên Bảng tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-doc" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-5">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-teal-100 text-brand-teal flex items-center justify-center text-lg"><i class="fa-solid fa-file-arrow-up"></i></div>
+                    <div>
+                        <h3 class="font-extrabold text-brand-text text-lg">Đăng tải tài liệu thư viện</h3>
+                        <p class="text-xs text-slate-500">Gắn liên kết Google Drive hoặc học liệu mở</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-doc')" class="w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="handleAddDoc(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Tên tài liệu / Ấn phẩm *</label>
+                    <input id="doc-title" type="text" required placeholder="Ví dụ: Danh mục sách tham khảo lớp 9" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-teal">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Định dạng hiển thị *</label>
+                    <select id="doc-format" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:border-brand-teal">
+                        <option value="PDF">Tài liệu PDF (Link Google Drive)</option>
+                        <option value="DOCX">Văn bản Word (DOCX)</option>
+                        <option value="XLSX">Bảng tính Excel (XLSX)</option>
+                        <option value="LINK">Liên kết trực tuyến (LINK)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Đường dẫn Google Drive hoặc Học liệu mở (URL) *</label>
+                    <input id="doc-url-input" type="url" required placeholder="https://drive.google.com/file/d/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-teal">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-700 mb-1.5">Mô tả ngắn nội dung *</label>
+                    <input id="doc-desc" type="text" required placeholder="Mô tả ngắn gọn..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-teal">
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('modal-doc')" class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Hủy bỏ</button>
+                    <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-brand-teal hover:bg-brand-tealDark text-white font-bold text-sm">Lưu tài liệu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-lightbox" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden items-center justify-center p-4" onclick="closeModal('modal-lightbox')">
+        <div class="bg-white rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="relative bg-slate-900">
+                <img id="lb-image" src="" alt="Hình ảnh hoạt động thư viện" class="w-full max-h-[60vh] object-contain mx-auto">
+                <button onclick="closeModal('modal-lightbox')" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center gap-2 text-xs font-bold text-brand-blue mb-1.5">
+                    <span id="lb-tag" class="bg-blue-50 px-2.5 py-0.5 rounded-md">Chuyên mục</span>
+                    <span class="text-slate-400">•</span>
+                    <span id="lb-date" class="text-slate-500">Ngày đăng</span>
+                </div>
+                <h3 id="lb-title" class="text-xl font-extrabold text-brand-text mb-2">Tiêu đề bản tin</h3>
+                <p id="lb-summary" class="text-sm text-slate-600 leading-relaxed">Nội dung chi tiết...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 items-center gap-3 text-sm">
+        <i class="fa-solid fa-circle-check text-brand-teal text-lg shrink-0"></i>
+        <span id="toast-msg">Thao tác thành công!</span>
+    </div>
+
+    <script>
+        // =====================================================================
+        // CẤU HÌNH ĐỒNG BỘ GOOGLE APPS SCRIPT & MẬT KHẨU ADMIN
+        // =====================================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbwSyl_5KDGVTJlf9cGTds00YnIZ6OQGlwsUZliA_GHf2K4Rh7PgOqB1l4tuHWh5PAs7RQ/exec"; // Dán đường link Web App Google Apps Script của bạn vào đây
+        const ADMIN_PASS = "sontay2026"; // Mật khẩu bật chế độ Quản trị viên
+        const STORAGE_KEY = 'tv_sontay_board_v3';
+
+        let isAdmin = false;
+        let currentDocFilter = 'ALL';
+        let currentReviewFilter = 'ALL';
+        let pendingNewsImageBase64 = '';
+        let toastTimer = null;
+
+        const defaultData = {
+            news: [
+                {
+                    id: 'n1', tag: 'Không gian đọc xanh',
+                    title: 'Thư viện Trường PTDTNT THCS Sơn Tây khoác "áo mới" với góc Cây Tri Thức',
+                    date: '12/11/2026',
+                    summary: 'Với sự chung tay của thầy và trò, không gian thư viện được bố trí lại thoáng đãng, rực rỡ sắc màu với mô hình Cây Tri Thức, tạo điểm hẹn đọc sách lý tưởng sau giờ lên lớp.',
+                    image: 'https://placehold.co/640x400/1769AA/ffffff?text=Khong+Gian+Cay+Tri+Thuc', pinned: true
+                },
+                {
+                    id: 'n2', tag: 'Ngày hội đọc sách',
+                    title: 'Sôi nổi Ngày Sách và Văn hóa đọc Việt Nam năm học 2026 – 2027',
+                    date: '05/11/2026',
+                    summary: 'Học sinh các khối lớp 6, 7, 8, 9 hào hứng tham gia trưng bày sách nghệ thuật, kể chuyện theo sách và giao lưu chia sẻ những cuốn sách hay.',
+                    image: 'https://placehold.co/640x400/20A69A/ffffff?text=Ngay+Hoi+Doc+Sach+Son+Tay', pinned: false
+                },
+                {
+                    id: 'n3', tag: 'Hoạt động nội trú',
+                    title: 'Phong trào "15 phút đọc sách mỗi tối" lan tỏa tại khu nội trú',
+                    date: '28/10/2026',
+                    summary: 'Hoạt động đọc truyện song ngữ trên Let\'s Read và nghe sách hay buổi tối giúp các em học sinh nội trú rèn luyện thói quen tự học và mở rộng vốn từ vựng.',
+                    image: 'https://placehold.co/640x400/F48740/ffffff?text=Gio+Doc+Sach+Noi+Tru', pinned: false
+                }
+            ],
+            docs: [
+                { id: 'd1', title: 'Let\'s Read – Kho truyện tranh thiếu nhi song ngữ miễn phí (Quỹ Châu Á)', format: 'LINK', size: 'Trực tuyến', date: '12/11/2026', desc: 'Liên kết chính thức đến thư viện số Let\'s Read (letsreadasia.org) với hàng trăm cuốn truyện minh họa sinh động bằng tiếng Việt và tiếng Anh.', url: 'https://www.letsreadasia.org' },
+                { id: 'd2', title: 'Literacy Cloud – Thư viện Mây Room to Read (Sách tranh & Video đọc truyện)', format: 'LINK', size: 'Trực tuyến', date: '12/11/2026', desc: 'Nền tảng học liệu số miễn phí của tổ chức Room to Read (literacycloud.org) hỗ trợ học sinh THCS rèn luyện kỹ năng đọc hiểu và kể chuyện.', url: 'https://literacycloud.org' },
+                { id: 'd3', title: 'Hành trang số – Sách giáo khoa điện tử & Học liệu NXB Giáo dục Việt Nam', format: 'LINK', size: 'Trực tuyến', date: '12/11/2026', desc: 'Cổng sách giáo khoa điện tử chính thống (hanhtrangso.nxbgd.vn) đầy đủ các môn học lớp 6, 7, 8, 9 phục vụ học sinh nội trú ôn bài buổi tối.', url: 'https://hanhtrangso.nxbgd.vn' },
+                { id: 'd4', title: 'Nội quy Thư viện & Quy định mượn trả sách dành cho học sinh nội trú', format: 'PDF', size: '420 KB', date: '01/11/2026', desc: 'Quy định giờ mở cửa phục vụ ban ngày và buổi tối, số lượng sách được mượn tối đa và cách bảo quản tài liệu thư viện.', url: '#' },
+                { id: 'd5', title: 'Danh mục sách giáo khoa & tài liệu tham khảo chuẩn Thông tư 16/2022/TT-BGDĐT', format: 'XLSX', size: '685 KB', date: '25/10/2026', desc: 'Bảng thống kê chi tiết các đầu sách hiện có tại kho thư viện phân loại theo từng khối lớp 6, 7, 8, 9 và bộ môn.', url: '#' },
+                { id: 'd6', title: 'Sổ Đăng ký cá biệt (ĐKCB) mẫu & Hướng dẫn bảo quản ấn phẩm thư viện', format: 'DOCX', size: '310 KB', date: '18/10/2026', desc: 'Biểu mẫu nghiệp vụ thư viện trường học và hướng dẫn học sinh giữ gìn sách giáo khoa dùng chung.', url: '#' }
+            ],
+            reviews: [
+                { id: 'r1', author: 'Đinh Thị Hồng Nhung', className: 'Lớp 8', book: 'Dế Mèn phiêu lưu ký – Tô Hoài', rating: 5, date: '11/11/2026', content: 'Em rất thích hành trình trưởng thành của Dế Mèn. Qua những vấp ngã, Dế Mèn đã biết khiêm tốn, yêu thương bạn bè và bênh vực kẻ yếu.', likes: 18, status: 'approved' },
+                { id: 'r2', author: 'Đinh Văn Minh', className: 'Lớp 7', book: 'Tôi thấy hoa vàng trên cỏ xanh – Nguyễn Nhật Ánh', rating: 5, date: '09/11/2026', content: 'Những câu chuyện tuổi thơ giản dị ở làng quê làm em nhớ nhà và trân trọng tình cảm anh em, bạn bè nơi mái trường nội trú.', likes: 14, status: 'approved' },
+                { id: 'r3', author: 'Cô Đinh Thị Mai', className: 'Giáo viên', book: 'Hạt giống tâm hồn – Nhiều tác giả', rating: 5, date: '06/11/2026', content: 'Cuốn sách nhỏ nhưng chứa đựng nhiều bài học sâu sắc về nghị lực vượt khó, rất phù hợp để các em học sinh đọc vào giờ tự học buổi tối.', likes: 22, status: 'approved' },
+                { id: 'r4', author: 'Hồ Thị Lan Anh', className: 'Lớp 9', book: 'Khám phá Vũ trụ – Bách khoa tri thức thiếu nhi', rating: 4, date: '02/11/2026', content: 'Hình ảnh minh họa các hành tinh trong hệ Mặt Trời rất rõ nét, giúp em hiểu thêm nhiều kiến thức môn Khoa học tự nhiên.', likes: 11, status: 'approved' }
+            ]
+        };
+
+        let appData = loadLocalData();
+
+        function loadLocalData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) {}
+            return JSON.parse(JSON.stringify(defaultData));
+        }
+
+        function saveLocalData() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (e) {}
+            updateStats();
+        }
+
+        // Đồng bộ dữ liệu từ Google Sheets (nếu đã dán API_URL)
+        async function syncFromCloud(showNotify = false) {
+            if (!API_URL) {
+                renderAll();
+                return;
+            }
+            try {
+                const res = await fetch(API_URL);
+                const cloudData = await res.json();
+                if (cloudData && cloudData.news) {
+                    appData = cloudData;
+                    saveLocalData();
+                    renderAll();
+                    if (showNotify) showToast('Đã đồng bộ dữ liệu mới nhất từ máy chủ!');
+                }
+            } catch (err) {
+                console.warn('Chạy ở chế độ ngoại tuyến:', err);
+                renderAll();
+            }
+        }
+
+        async function pushActionToCloud(payload) {
+            if (!API_URL) return;
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error('Lỗi đồng bộ:', err);
+            }
+        }
+
+        function escapeHTML(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function getTodayStr() {
+            const d = new Date();
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        }
+
+        function updateStats() {
+            document.getElementById('stat-news').textContent = appData.news.length;
+            document.getElementById('stat-docs').textContent = appData.docs.length;
+            const approvedCount = appData.reviews.filter(r => r.status !== 'pending').length;
+            const pendingCount = appData.reviews.filter(r => r.status === 'pending').length;
+            document.getElementById('stat-reviews').textContent = approvedCount;
+
+            const badge = document.getElementById('pending-counter-badge');
+            if (pendingCount > 0) {
+                badge.textContent = `${pendingCount} bài chờ duyệt`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // CHẾ ĐỘ ADMIN CÓ MẬT KHẨU BẢO VỆ
+        function toggleAdminMode() {
+            if (!isAdmin) {
+                const pass = prompt("Nhập mật khẩu Quản trị viên Thư viện:");
+                if (pass !== ADMIN_PASS) {
+                    if (pass !== null) showToast("Sai mật khẩu Quản trị viên!");
+                    return;
+                }
+            }
+            isAdmin = !isAdmin;
+            const banner = document.getElementById('admin-banner');
+            const btn = document.getElementById('btn-toggle-admin');
+            const icon = document.getElementById('admin-icon');
+            const text = document.getElementById('admin-btn-text');
+            const btnAddNews = document.getElementById('btn-add-news');
+            const btnAddDoc = document.getElementById('btn-add-doc');
+
+            if (isAdmin) {
+                banner.classList.remove('hidden');
+                btnAddNews.classList.remove('hidden');
+                btnAddDoc.classList.remove('hidden');
+                btn.classList.replace('bg-slate-100', 'bg-brand-orange');
+                btn.classList.replace('text-slate-800', 'text-slate-950');
+                icon.className = 'fa-solid fa-unlock-keyhole text-slate-950';
+                text.textContent = 'Đang bật Admin';
+                showToast('Đã bật Chế độ Quản trị viên.');
+            } else {
+                banner.classList.add('hidden');
+                btnAddNews.classList.add('hidden');
+                btnAddDoc.classList.add('hidden');
+                btn.classList.replace('bg-brand-orange', 'bg-slate-100');
+                btn.classList.replace('text-slate-950', 'text-slate-800');
+                icon.className = 'fa-solid fa-lock text-slate-500';
+                text.textContent = 'Quản trị (Admin)';
+                showToast('Đã thoát Chế độ Quản trị.');
+            }
+            renderAll();
+        }
+
+        function exportBackupData() {
+            const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Sao_luu_Thu_vien_Son_Tay_${getTodayStr().replace(/\//g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // PHÂN KHU 1: BẢNG TIN
+        function renderNews() {
+            const grid = document.getElementById('news-grid');
+            const sortedNews = [...appData.news].sort((a, b) => (b.pinned === true) - (a.pinned === true));
+            grid.innerHTML = sortedNews.map(item => `
+                <article class="bg-white rounded-3xl overflow-hidden border ${item.pinned ? 'border-brand-orange ring-2 ring-brand-orange/20' : 'border-slate-200'} shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+                    <div>
+                        <div class="relative h-52 bg-slate-100 overflow-hidden cursor-pointer" onclick="openLightbox('${item.id}')">
+                            <img src="${item.image}" alt="${escapeHTML(item.title)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-brand-blue shadow-sm">${escapeHTML(item.tag)}</span>
+                                ${item.pinned ? `<span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-brand-orange text-white shadow-sm"><i class="fa-solid fa-thumbtack mr-1"></i>Ghim</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="text-xs text-slate-400 font-medium mb-1.5"><i class="fa-regular fa-calendar mr-1"></i>${escapeHTML(item.date)}</div>
+                            <h3 onclick="openLightbox('${item.id}')" class="font-extrabold text-brand-text text-base sm:text-lg leading-snug mb-2 cursor-pointer hover:text-brand-blue transition">${escapeHTML(item.title)}</h3>
+                            <p class="text-sm text-slate-600 line-clamp-3 leading-relaxed">${escapeHTML(item.summary)}</p>
+                        </div>
+                    </div>
+                    <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                        <button onclick="openLightbox('${item.id}')" class="text-xs font-bold text-brand-blue hover:underline">Xem ảnh & chi tiết →</button>
+                        ${isAdmin ? `
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="togglePinNews('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800"><i class="fa-solid fa-thumbtack"></i></button>
+                                <button onclick="deleteNews('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function previewNewsImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxW = 800;
+                    const scale = img.width > maxW ? maxW / img.width : 1;
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    pendingNewsImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                    const previewEl = document.getElementById('news-image-preview');
+                    previewEl.src = pendingNewsImageBase64;
+                    previewEl.classList.remove('hidden');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function handleAddNews(event) {
+            event.preventDefault();
+            const newItem = {
+                id: 'n_' + Date.now(),
+                tag: document.getElementById('news-tag').value,
+                title: document.getElementById('news-title').value.trim(),
+                date: getTodayStr(),
+                summary: document.getElementById('news-summary').value.trim(),
+                image: pendingNewsImageBase64 || 'https://placehold.co/640x400/1769AA/ffffff?text=Hoat+Dong+Thu+Vien',
+                pinned: false
+            };
+            appData.news.unshift(newItem);
+            saveLocalData();
+            renderNews();
+            closeModal('modal-news');
+            event.target.reset();
+            pendingNewsImageBase64 = '';
+            document.getElementById('news-image-preview').classList.add('hidden');
+            showToast('Đã đăng bản tin hoạt động mới!');
+            await pushActionToCloud({ action: 'addNews', item: newItem });
+        }
+
+        async function togglePinNews(id) {
+            const item = appData.news.find(n => n.id === id);
+            if (item) {
+                item.pinned = !item.pinned;
+                saveLocalData();
+                renderNews();
+                await pushActionToCloud({ action: 'saveAll', data: appData });
+            }
+        }
+
+        async function deleteNews(id) {
+            appData.news = appData.news.filter(n => n.id !== id);
+            saveLocalData();
+            renderNews();
+            showToast('Đã xóa bản tin.');
+            await pushActionToCloud({ action: 'saveAll', data: appData });
+        }
+
+        function openLightbox(id) {
+            const item = appData.news.find(n => n.id === id);
+            if (!item) return;
+            document.getElementById('lb-image').src = item.image;
+            document.getElementById('lb-tag').textContent = item.tag;
+            document.getElementById('lb-date').textContent = item.date;
+            document.getElementById('lb-title').textContent = item.title;
+            document.getElementById('lb-summary').textContent = item.summary;
+            openModal('modal-lightbox');
+        }
+
+        // PHÂN KHU 2: TÀI LIỆU
+        function renderDocs() {
+            const list = document.getElementById('docs-list');
+            const filtered = currentDocFilter === 'ALL' ? appData.docs : appData.docs.filter(d => d.format === currentDocFilter);
+            list.innerHTML = filtered.map(doc => `
+                <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 hover:bg-white border border-slate-200 shadow-sm transition flex items-start justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-extrabold bg-teal-100 text-brand-teal">${escapeHTML(doc.format)}</span>
+                        <span class="text-xs text-slate-400 ml-2">${escapeHTML(doc.date)}</span>
+                        <h3 class="font-bold text-brand-text text-sm sm:text-base mt-1 mb-1">${escapeHTML(doc.title)}</h3>
+                        <p class="text-xs sm:text-sm text-slate-600">${escapeHTML(doc.desc)}</p>
+                    </div>
+                    <div class="flex flex-col items-end gap-2 shrink-0">
+                        <a href="${escapeHTML(doc.url)}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-brand-teal hover:bg-brand-tealDark text-white font-bold text-xs whitespace-nowrap">Mở tài liệu ↗</a>
+                        ${isAdmin ? `<button onclick="deleteDoc('${doc.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-600"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterDocs(format, btnEl) {
+            currentDocFilter = format;
+            document.querySelectorAll('.doc-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-teal', 'text-white', 'font-bold');
+                btn.classList.add('bg-slate-100', 'text-slate-700', 'font-semibold');
+            });
+            btnEl.classList.add('bg-brand-teal', 'text-white', 'font-bold');
+            renderDocs();
+        }
+
+        async function handleAddDoc(event) {
+            event.preventDefault();
+            const newDoc = {
+                id: 'd_' + Date.now(),
+                title: document.getElementById('doc-title').value.trim(),
+                format: document.getElementById('doc-format').value,
+                size: 'Trực tuyến',
+                date: getTodayStr(),
+                desc: document.getElementById('doc-desc').value.trim(),
+                url: document.getElementById('doc-url-input').value.trim()
+            };
+            appData.docs.unshift(newDoc);
+            saveLocalData();
+            renderDocs();
+            closeModal('modal-doc');
+            event.target.reset();
+            showToast('Đã thêm tài liệu mới!');
+            await pushActionToCloud({ action: 'saveAll', data: appData });
+        }
+
+        async function deleteDoc(id) {
+            appData.docs = appData.docs.filter(d => d.id !== id);
+            saveLocalData();
+            renderDocs();
+            await pushActionToCloud({ action: 'saveAll', data: appData });
+        }
+
+        // PHÂN KHU 3: CẢM NHẬN ĐỌC GIẢ (CÓ HÀNG ĐỢI DUYỆT BÀI)
+        function setRating(val) {
+            document.getElementById('rev-rating').value = val;
+            document.getElementById('rating-label').textContent = `${val}/5`;
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                const btnVal = Number(btn.getAttribute('data-val'));
+                btn.classList.toggle('text-amber-400', btnVal <= val);
+                btn.classList.toggle('text-slate-300', btnVal > val);
+            });
+        }
+
+        function renderReviews() {
+            const wall = document.getElementById('reviews-wall');
+            const pendingBox = document.getElementById('admin-pending-box');
+            const pendingList = document.getElementById('pending-reviews-list');
+
+            const pendingItems = appData.reviews.filter(r => r.status === 'pending');
+            const approvedItems = appData.reviews.filter(r => r.status !== 'pending');
+
+            // Hiển thị hộp chờ duyệt nếu đang bật Admin và có bài chờ
+            if (isAdmin && pendingItems.length > 0) {
+                pendingBox.classList.remove('hidden');
+                document.getElementById('pending-count-text').textContent = pendingItems.length;
+                pendingList.innerHTML = pendingItems.map(rev => `
+                    <div class="bg-white p-4 rounded-xl border border-amber-200 flex flex-col sm:flex-row justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-bold text-brand-orange">${escapeHTML(rev.author)} (${escapeHTML(rev.className)}) • Sách: ${escapeHTML(rev.book)}</div>
+                            <p class="text-sm text-slate-700 mt-1">"${escapeHTML(rev.content)}"</p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="approveReview('${rev.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs">✓ Duyệt lên trang</button>
+                            <button onclick="deleteReview('${rev.id}')" class="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs">✕ Xóa</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                pendingBox.classList.add('hidden');
+            }
+
+            const filtered = currentReviewFilter === 'ALL' ? approvedItems : approvedItems.filter(r => r.className === currentReviewFilter);
+            wall.innerHTML = filtered.map(rev => {
+                const starsHtml = Array.from({ length: 5 }, (_, i) => `<i class="fa-solid fa-star ${i < rev.rating ? 'text-amber-400' : 'text-slate-200'}"></i>`).join('');
+                return `
+                    <div class="pin-card bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2.5">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-brand-orange border border-orange-200">${escapeHTML(rev.className)}</span>
+                                <div class="text-xs flex items-center gap-0.5">${starsHtml}</div>
+                            </div>
+                            <h4 class="font-extrabold text-brand-text text-sm mb-2"><i class="fa-solid fa-book text-brand-blue mr-1.5"></i>${escapeHTML(rev.book)}</h4>
+                            <p class="text-xs sm:text-sm text-slate-600 italic leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">"${escapeHTML(rev.content)}"</p>
+                        </div>
+                        <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="font-bold text-slate-800 block">${escapeHTML(rev.author)}</span>
+                                <span class="text-[11px] text-slate-400">${escapeHTML(rev.date)}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="likeReview('${rev.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold"><i class="fa-solid fa-heart mr-1"></i>${rev.likes}</button>
+                                ${isAdmin ? `<button onclick="deleteReview('${rev.id}')" class="px-2 py-1 rounded-lg bg-slate-100 text-rose-600"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function submitReview(event) {
+            event.preventDefault();
+            const newRev = {
+                id: 'r_' + Date.now(),
+                author: document.getElementById('rev-author').value.trim(),
+                className: document.getElementById('rev-class').value,
+                book: document.getElementById('rev-book').value.trim(),
+                rating: Number(document.getElementById('rev-rating').value) || 5,
+                date: getTodayStr(),
+                content: document.getElementById('rev-content').value.trim(),
+                likes: 1,
+                status: 'pending' // Mặc định chờ Thư viện duyệt
+            };
+            appData.reviews.unshift(newRev);
+            saveLocalData();
+            renderReviews();
+            event.target.reset();
+            setRating(5);
+            showToast(`Đã gửi bài của ${newRev.author}! Bài viết sẽ hiển thị ngay sau khi Thư viện kiểm duyệt.`);
+            await pushActionToCloud({ action: 'submitReview', item: newRev });
+        }
+
+        async function approveReview(id) {
+            const rev = appData.reviews.find(r => r.id === id);
+            if (rev) {
+                rev.status = 'approved';
+                saveLocalData();
+                renderReviews();
+                showToast('Đã duyệt bài cảm nhận lên Bức tường Tri Thức!');
+                await pushActionToCloud({ action: 'saveAll', data: appData });
+            }
+        }
+
+        async function deleteReview(id) {
+            appData.reviews = appData.reviews.filter(r => r.id !== id);
+            saveLocalData();
+            renderReviews();
+            showToast('Đã xóa bài cảm nhận.');
+            await pushActionToCloud({ action: 'saveAll', data: appData });
+        }
+
+        async function likeReview(id) {
+            const rev = appData.reviews.find(r => r.id === id);
+            if (rev) {
+                rev.likes += 1;
+                saveLocalData();
+                renderReviews();
+                await pushActionToCloud({ action: 'saveAll', data: appData });
+            }
+        }
+
+        function filterReviews(filterVal, btnEl) {
+            currentReviewFilter = filterVal;
+            document.querySelectorAll('.rev-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-blue', 'text-white', 'font-bold');
+                btn.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-600');
+            });
+            btnEl.classList.add('bg-brand-blue', 'text-white', 'font-bold');
+            renderReviews();
+        }
+
+        function openNewsModal() { openModal('modal-news'); }
+        function openDocModal() { openModal('modal-doc'); }
+        function openModal(id) { const el = document.getElementById(id); el.classList.remove('hidden'); el.classList.add('flex'); }
+        function closeModal(id) { const el = document.getElementById(id); el.classList.add('hidden'); el.classList.remove('flex'); }
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('hidden'); toast.classList.add('flex');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('flex'); }, 4000);
+        }
+
+        function renderAll() { renderNews(); renderDocs(); renderReviews(); updateStats(); }
+        window.onload = function() { syncFromCloud(false); };
+    </script>
+</body>
+</html>
